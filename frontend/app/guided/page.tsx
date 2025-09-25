@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ChevronLeft, ChevronRight, FileText, CheckCircle, Wand2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, FileText, CheckCircle, Wand2, Copy } from "lucide-react"
 import { useState } from "react"
 
 interface FormData {
@@ -88,6 +88,29 @@ export default function GuidedPage() {
     documentTypes: [],
   })
   const [generatedRTI, setGeneratedRTI] = useState("")
+  const [showAutofillHelp, setShowAutofillHelp] = useState(false)
+
+  const rtiPortalUrl = "https://rtionline.gov.in/request/request.php"
+
+  const handleCopy = async () => {
+    if (!generatedRTI) return
+    try { await navigator.clipboard.writeText(generatedRTI) } catch {}
+  }
+
+  const handleApplyNow = async () => {
+    if (!generatedRTI.trim()) return
+    try {
+      window.name = generatedRTI
+      localStorage.setItem("rti_autofill_text", generatedRTI)
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(generatedRTI)
+      }
+    } catch {}
+    window.open(rtiPortalUrl, "_blank", "noopener,noreferrer")
+    setShowAutofillHelp(true)
+  }
+
+  const bookmarklet = `javascript:(async function(){try{var t=window.name||localStorage.getItem('rti_autofill_text')||'';if(!t&&navigator.clipboard&&navigator.clipboard.readText){try{t=await navigator.clipboard.readText()}catch(e){}}if(!t){alert('No RTI text found. Go back and click Apply Now again.');return}var areas=[...document.querySelectorAll('textarea')];if(!areas.length){alert('No textarea found on this page');return}areas.sort(function(a,b){function s(el){var w=el.cols||el.offsetWidth||0;var h=el.rows||el.offsetHeight||0;return w*h}return s(b)-s(a)});var ta=areas[0];ta.value=t;ta.dispatchEvent(new Event('input',{bubbles:true}));ta.focus();alert('Filled the RTI application text. Please review before submitting.')}catch(err){alert('Autofill failed: '+err)}})()`
 
   const progress = (currentStep / steps.length) * 100
 
@@ -452,14 +475,27 @@ Place: ${formData.location}`
                   <div className="bg-muted/30 rounded-lg p-4 border mb-4">
                     <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">{generatedRTI}</pre>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button>
                       <FileText className="w-4 h-4 mr-2" />
                       Download RTI
                     </Button>
-                    <Button variant="outline">Copy Text</Button>
+                    <Button variant="outline" onClick={handleCopy}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Text
+                    </Button>
+                    <Button onClick={handleApplyNow}>
+                      Apply Now (RTI Online)
+                    </Button>
                     <Button variant="outline">Save Draft</Button>
                   </div>
+                  {showAutofillHelp && (
+                    <div className="mt-4 p-4 border rounded-lg bg-muted/30">
+                      <p className="text-sm mb-2">After the RTI Online page opens, click this to autofill:</p>
+                      <a href={bookmarklet} className="text-sm underline text-primary break-all" title="Drag to bookmarks bar and click on RTI Online page">RTI Autofill</a>
+                      <p className="text-xs mt-2 text-muted-foreground">You can drag this link to your bookmarks bar and click it on the RTI Online page.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

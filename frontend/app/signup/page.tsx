@@ -93,7 +93,7 @@ export default function SignupPage() {
       <Navigation />
 
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-lg">
           <CardHeader className="text-center">
             <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
               <FileText className="w-6 h-6 text-primary-foreground" />

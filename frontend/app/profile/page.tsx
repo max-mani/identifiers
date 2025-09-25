@@ -1,3 +1,6 @@
+"use client"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,14 +10,54 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { User, Save, Camera } from "lucide-react"
+import { User, Save, Camera, LogOut } from "lucide-react"
 
 export default function ProfilePage() {
+  const router = useRouter()
+  const [logoutLoading, setLogoutLoading] = useState(false)
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+
+  const handleLogout = async () => {
+    setLogoutLoading(true)
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (response.ok) {
+        // Clear any local storage or state if needed
+        localStorage.clear()
+        sessionStorage.clear()
+        
+        // Redirect to login page
+        router.push("/login")
+      } else {
+        console.error("Logout failed")
+        // Even if logout fails on server, clear local state and redirect
+        localStorage.clear()
+        sessionStorage.clear()
+        router.push("/login")
+      }
+    } catch (error) {
+      console.error("Logout error:", error)
+      // Even if logout fails, clear local state and redirect
+      localStorage.clear()
+      sessionStorage.clear()
+      router.push("/login")
+    } finally {
+      setLogoutLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="w-full py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
           <p className="text-muted-foreground mt-2">Manage your account information and preferences</p>
@@ -222,6 +265,23 @@ export default function ProfilePage() {
                     <p className="text-sm text-muted-foreground">Receive updates about your RTI applications</p>
                   </div>
                   <Button variant="outline">Manage</Button>
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-destructive">Sign Out</h4>
+                    <p className="text-sm text-muted-foreground">Sign out of your account and return to login page</p>
+                  </div>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleLogout}
+                    disabled={logoutLoading}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    {logoutLoading ? "Signing out..." : "Sign Out"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>

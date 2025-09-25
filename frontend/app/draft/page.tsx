@@ -32,6 +32,7 @@ export default function DraftPage() {
   const [questions, setQuestions] = useState<Array<{id: string; label: string; placeholder?: string; type?: string; options?: string[]}> | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [showAutofillHelp, setShowAutofillHelp] = useState(false)
 
   const handleGenerate = async () => {
     setError(null)
@@ -183,6 +184,25 @@ export default function DraftPage() {
     setDownloadOpen(false)
   }
 
+  const rtiPortalUrl = "https://rtionline.gov.in/request/request.php"
+
+  const handleApplyNow = async () => {
+    if (!generatedRTI.trim()) return
+    try {
+      window.name = generatedRTI
+      localStorage.setItem("rti_autofill_text", generatedRTI)
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(generatedRTI)
+      }
+    } catch (e) {
+      // ignore
+    }
+    window.open(rtiPortalUrl, "_blank", "noopener,noreferrer")
+    setShowAutofillHelp(true)
+  }
+
+  const bookmarklet = `javascript:(async function(){try{var t=window.name||localStorage.getItem('rti_autofill_text')||'';if(!t&&navigator.clipboard&&navigator.clipboard.readText){try{t=await navigator.clipboard.readText()}catch(e){}}if(!t){alert('No RTI text found. Go back and click Apply Now again.');return}var areas=[...document.querySelectorAll('textarea')];if(!areas.length){alert('No textarea found on this page');return}areas.sort(function(a,b){function s(el){var w=el.cols||el.offsetWidth||0;var h=el.rows||el.offsetHeight||0;return w*h}return s(b)-s(a)});var ta=areas[0];ta.value=t;ta.dispatchEvent(new Event('input',{bubbles:true}));ta.focus();alert('Filled the RTI application text. Please review before submitting.')}catch(err){alert('Autofill failed: '+err)}})()`
+
   const toggleRecording = () => {
     setIsRecording(!isRecording)
     // Here you would implement actual voice recording
@@ -192,7 +212,7 @@ export default function DraftPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="w-full py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Draft RTI Application</h1>
           <p className="text-muted-foreground">Convert your query into a proper RTI application format</p>
@@ -448,6 +468,9 @@ export default function DraftPage() {
                         <Copy className="w-4 h-4 mr-2" />
                         Copy Text
                       </Button>
+                      <Button onClick={handleApplyNow} size="sm" className="bg-primary text-primary-foreground">
+                        Apply Now (RTI Online)
+                      </Button>
                       <Dialog open={downloadOpen} onOpenChange={setDownloadOpen}>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm">
@@ -482,6 +505,13 @@ export default function DraftPage() {
                         Save Draft
                       </Button>
                     </div>
+                    {showAutofillHelp && (
+                      <div className="mt-4 p-4 border rounded-lg bg-muted/30">
+                        <p className="text-sm mb-2">After the RTI Online page opens, click this to autofill:</p>
+                        <a href={bookmarklet} className="text-sm underline text-primary break-all" title="Drag to bookmarks bar and click on RTI Online page">RTI Autofill</a>
+                        <p className="text-xs mt-2 text-muted-foreground">You can drag this link to your bookmarks bar and click it on the RTI Online page.</p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
