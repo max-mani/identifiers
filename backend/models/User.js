@@ -36,12 +36,26 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [/^[+]?[\d\s-()]{10,15}$/, 'Please enter a valid phone number']
   },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'third'],
+    default: null
+  },
   address: {
     street: { type: String, trim: true },
     city: { type: String, trim: true },
     state: { type: String, trim: true },
     pincode: { type: String, trim: true },
     country: { type: String, default: 'India', trim: true }
+  },
+  rtiProfile: {
+    status: { type: String, enum: ['rural', 'urban'], default: null },
+    education: { type: String, enum: ['literate', 'illiterate', 'below12', '12pass', 'graduate', 'aboveGraduate'], default: null },
+    citizenship: { type: String, enum: ['indian', 'other'], default: 'indian' },
+    isBPL: { type: Boolean, default: false },
+    bplCardNo: { type: String, trim: true },
+    bplIssueYear: { type: String, trim: true },
+    bplIssuingAuthority: { type: String, trim: true }
   },
   preferences: {
     language: { type: String, default: 'english', enum: ['english', 'hindi', 'bengali', 'tamil', 'telugu', 'marathi', 'gujarati'] },

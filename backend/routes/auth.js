@@ -33,6 +33,32 @@ router.post('/register', [
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('State must be between 2 and 50 characters')
+  ,
+  body('gender')
+    .optional()
+    .isIn(['male', 'female', 'third'])
+    .withMessage('Invalid gender'),
+  body('address')
+    .optional()
+    .isObject(),
+  body('rtiProfile')
+    .optional()
+    .isObject(),
+  body('rtiProfile.status')
+    .optional()
+    .isIn(['rural', 'urban'])
+    .withMessage('Invalid status'),
+  body('rtiProfile.education')
+    .optional()
+    .isIn(['literate', 'illiterate', 'below12', '12pass', 'graduate', 'aboveGraduate'])
+    .withMessage('Invalid education'),
+  body('rtiProfile.citizenship')
+    .optional()
+    .isIn(['indian', 'other'])
+    .withMessage('Invalid citizenship'),
+  body('rtiProfile.isBPL')
+    .optional()
+    .isBoolean(),
 ], async (req, res, next) => {
   try {
     // Check for validation errors
@@ -45,7 +71,7 @@ router.post('/register', [
       });
     }
 
-    const { firstName, lastName, email, password, phone, state } = req.body;
+    const { firstName, lastName, email, password, phone, state, gender, address, rtiProfile } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -63,9 +89,12 @@ router.post('/register', [
       email,
       password,
       phone,
+      gender: gender || undefined,
       address: {
-        state: state || ''
-      }
+        ...(address || {}),
+        state: (address?.state || state || '')
+      },
+      rtiProfile: rtiProfile || undefined
     });
 
     // Send token response
@@ -213,6 +242,32 @@ router.put('/profile', protect, [
     .optional()
     .matches(/^[+]?[\d\s-()]{10,15}$/)
     .withMessage('Please provide a valid phone number')
+  ,
+  body('gender')
+    .optional()
+    .isIn(['male', 'female', 'third'])
+    .withMessage('Invalid gender'),
+  body('address')
+    .optional()
+    .isObject(),
+  body('rtiProfile')
+    .optional()
+    .isObject(),
+  body('rtiProfile.status')
+    .optional()
+    .isIn(['rural', 'urban'])
+    .withMessage('Invalid status'),
+  body('rtiProfile.education')
+    .optional()
+    .isIn(['literate', 'illiterate', 'below12', '12pass', 'graduate', 'aboveGraduate'])
+    .withMessage('Invalid education'),
+  body('rtiProfile.citizenship')
+    .optional()
+    .isIn(['indian', 'other'])
+    .withMessage('Invalid citizenship'),
+  body('rtiProfile.isBPL')
+    .optional()
+    .isBoolean()
 ], async (req, res, next) => {
   try {
     // Check for validation errors
@@ -229,8 +284,10 @@ router.put('/profile', protect, [
       firstName,
       lastName,
       phone,
+      gender,
       address,
-      preferences
+      preferences,
+      rtiProfile
     } = req.body;
 
     const updateData = {};
@@ -238,8 +295,10 @@ router.put('/profile', protect, [
     if (firstName) updateData.firstName = firstName;
     if (lastName) updateData.lastName = lastName;
     if (phone) updateData.phone = phone;
+    if (gender) updateData.gender = gender;
     if (address) updateData.address = { ...req.user.address, ...address };
     if (preferences) updateData.preferences = { ...req.user.preferences, ...preferences };
+    if (rtiProfile) updateData.rtiProfile = { ...req.user.rtiProfile?.toObject?.() || req.user.rtiProfile || {}, ...rtiProfile };
 
     const user = await User.findByIdAndUpdate(
       req.user._id,

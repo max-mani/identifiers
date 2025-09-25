@@ -18,7 +18,19 @@ export default function SignupPage() {
     lastName: "",
     email: "",
     phone: "",
+    street: "",
+    city: "",
     state: "",
+    pincode: "",
+    country: "India",
+    gender: "",
+    status: "",
+    education: "",
+    citizenship: "indian",
+    isBPL: "no",
+    bplCardNo: "",
+    bplIssueYear: "",
+    bplIssuingAuthority: "",
     password: "",
     confirmPassword: "",
   })
@@ -47,6 +59,11 @@ export default function SignupPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Please provide a valid email"
     if (!/^[+]?[\d\s-()]{10,15}$/.test(form.phone)) errs.phone = "Please provide a valid phone number"
     if (form.password.length < 6) errs.password = "Password must be at least 6 characters"
+    if (!form.gender) errs.gender = "Please select gender"
+    if (!form.street || !form.city || !form.state || !form.pincode) errs.address = "Please complete your address"
+    if (!form.status) errs.status = "Please select Rural or Urban"
+    if (!form.education) errs.education = "Please select educational status"
+    if (!form.citizenship) errs.citizenship = "Please select citizenship"
     if (form.password !== form.confirmPassword) errs.confirmPassword = "Passwords do not match"
     if (!acceptedTerms) errs.terms = "You must accept the Terms of Service and Privacy Policy"
     if (Object.keys(errs).length > 0) {
@@ -65,7 +82,23 @@ export default function SignupPage() {
           email: form.email,
           password: form.password,
           phone: form.phone,
-          state: form.state,
+          gender: form.gender || undefined,
+          address: {
+            street: form.street,
+            city: form.city,
+            state: form.state,
+            pincode: form.pincode,
+            country: form.country || 'India',
+          },
+          rtiProfile: {
+            status: form.status || undefined,
+            education: form.education || undefined,
+            citizenship: form.citizenship || 'indian',
+            isBPL: form.isBPL === 'yes',
+            bplCardNo: form.bplCardNo || undefined,
+            bplIssueYear: form.bplIssueYear || undefined,
+            bplIssuingAuthority: form.bplIssuingAuthority || undefined,
+          },
         }),
       })
       const data = await res.json()
@@ -170,6 +203,172 @@ export default function SignupPage() {
                   <p id="phone-error" className="text-xs text-destructive">{fieldErrors.phone}</p>
                 )}
               </div>
+
+          <Separator />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select value={form.gender} onValueChange={(value) => setForm((p) => ({ ...p, gender: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="third">Third Gender</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldErrors.gender && (
+                <p className="text-xs text-destructive">{fieldErrors.gender}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="citizenship">Citizenship</Label>
+              <Select value={form.citizenship} onValueChange={(value) => setForm((p) => ({ ...p, citizenship: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select citizenship" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="indian">Indian</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldErrors.citizenship && (
+                <p className="text-xs text-destructive">{fieldErrors.citizenship}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={form.status} onValueChange={(value) => setForm((p) => ({ ...p, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Rural or Urban" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rural">Rural</SelectItem>
+                  <SelectItem value="urban">Urban</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldErrors.status && (
+                <p className="text-xs text-destructive">{fieldErrors.status}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="education">Educational Status</Label>
+              <Select value={form.education} onValueChange={(value) => setForm((p) => ({ ...p, education: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select education" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="literate">Literate</SelectItem>
+                  <SelectItem value="illiterate">Illiterate</SelectItem>
+                  <SelectItem value="below12">Below 12th Standard</SelectItem>
+                  <SelectItem value="12pass">12th Standard Pass</SelectItem>
+                  <SelectItem value="graduate">Graduate</SelectItem>
+                  <SelectItem value="aboveGraduate">Above Graduate</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldErrors.education && (
+                <p className="text-xs text-destructive">{fieldErrors.education}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="street">Address</Label>
+              <Input id="street" placeholder="Street / Address line" value={form.street} onChange={onChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input id="city" placeholder="City" value={form.city} onChange={onChange} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Select value={form.state} onValueChange={(value) => setForm((p) => ({ ...p, state: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your state" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Andhra Pradesh">Andhra Pradesh</SelectItem>
+                  <SelectItem value="Arunachal Pradesh">Arunachal Pradesh</SelectItem>
+                  <SelectItem value="Assam">Assam</SelectItem>
+                  <SelectItem value="Bihar">Bihar</SelectItem>
+                  <SelectItem value="Chhattisgarh">Chhattisgarh</SelectItem>
+                  <SelectItem value="Goa">Goa</SelectItem>
+                  <SelectItem value="Gujarat">Gujarat</SelectItem>
+                  <SelectItem value="Haryana">Haryana</SelectItem>
+                  <SelectItem value="Himachal Pradesh">Himachal Pradesh</SelectItem>
+                  <SelectItem value="Jharkhand">Jharkhand</SelectItem>
+                  <SelectItem value="Karnataka">Karnataka</SelectItem>
+                  <SelectItem value="Kerala">Kerala</SelectItem>
+                  <SelectItem value="Madhya Pradesh">Madhya Pradesh</SelectItem>
+                  <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+                  <SelectItem value="Manipur">Manipur</SelectItem>
+                  <SelectItem value="Meghalaya">Meghalaya</SelectItem>
+                  <SelectItem value="Mizoram">Mizoram</SelectItem>
+                  <SelectItem value="Nagaland">Nagaland</SelectItem>
+                  <SelectItem value="Odisha">Odisha</SelectItem>
+                  <SelectItem value="Punjab">Punjab</SelectItem>
+                  <SelectItem value="Rajasthan">Rajasthan</SelectItem>
+                  <SelectItem value="Sikkim">Sikkim</SelectItem>
+                  <SelectItem value="Tamil Nadu">Tamil Nadu</SelectItem>
+                  <SelectItem value="Telangana">Telangana</SelectItem>
+                  <SelectItem value="Tripura">Tripura</SelectItem>
+                  <SelectItem value="Uttar Pradesh">Uttar Pradesh</SelectItem>
+                  <SelectItem value="Uttarakhand">Uttarakhand</SelectItem>
+                  <SelectItem value="West Bengal">West Bengal</SelectItem>
+                  <SelectItem value="Delhi">Delhi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pincode">Pin code</Label>
+              <Input id="pincode" placeholder="e.g., 110001" value={form.pincode} onChange={onChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input id="country" placeholder="Country" value={form.country} onChange={onChange} />
+            </div>
+          </div>
+          {fieldErrors.address && (
+            <p className="text-xs text-destructive">{fieldErrors.address}</p>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="isBPL">Below Poverty Line (BPL)</Label>
+              <Select value={form.isBPL} onValueChange={(value) => setForm((p) => ({ ...p, isBPL: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no">No</SelectItem>
+                  <SelectItem value="yes">Yes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bplCardNo">BPL Card No. (if applicable)</Label>
+              <Input id="bplCardNo" placeholder="Card Number" value={form.bplCardNo} onChange={onChange} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="bplIssueYear">Year of Issue</Label>
+              <Input id="bplIssueYear" placeholder="e.g., 2021" value={form.bplIssueYear} onChange={onChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bplIssuingAuthority">Issuing Authority</Label>
+              <Input id="bplIssuingAuthority" placeholder="Authority" value={form.bplIssuingAuthority} onChange={onChange} />
+            </div>
+          </div>
 
               <div className="space-y-2">
                 <Label htmlFor="state">State</Label>
